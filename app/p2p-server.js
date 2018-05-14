@@ -4,7 +4,8 @@ const P2P_PORT  = process.env.P2P_PORT || 5001; //giving the user the ability to
 const peers     = process.env.PEERS ? process.env.PEERS.split(',') : []; // check if peers is present
 const MESSAGE_TYPES = {
   chain: 'CHAIN',
-  transaction: "TRANSACTION"
+  transaction: "TRANSACTION",
+  clear_transactions: 'CLEAR_TRANSACTIONS'
 };
 
 //HTTP_PORT=3002 P2P_PORT=5003 PEERS=ws://5001, ws://5002 npm run dev
@@ -63,6 +64,10 @@ socket.on('open', () => this.connectSocket(socket));
           case MESSAGE_TYPES.transaction:
           this.transactionPool.updateOrAddTransaction(data.transaction);
           break;
+
+          case MESSAGE_TYPES.clear_transactions:
+          this.transactionPool.clear();
+          break;
       }
 
 
@@ -97,6 +102,12 @@ sendTransaction(socket, transaction)
 broadcastTransaction(transaction)
 {
   this.sockets.forEach(socket => this.sendTransaction(socket, transaction));
+}
+broadcastClearTransactions()
+{
+  this.sockets.forEach(socket => socket.send(JSON.stringify({
+    type: MESSAGE_TYPES.clear_transactions
+  })));
 }
 }
 
